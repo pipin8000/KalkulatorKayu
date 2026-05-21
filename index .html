@@ -1,0 +1,1156 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wood Volume Calculator v1.1 — Jepara ERP Suite</title>
+<style>
+  :root {
+    --bg: #f5f4f0;
+    --surface: #ffffff;
+    --surface2: #f0efe9;
+    --surface3: #e8e6df;
+    --border: #d8d5cb;
+    --border2: #c4c0b2;
+    --text: #1a1917;
+    --text2: #5a5750;
+    --text3: #8a8680;
+    --accent: #2d5a27;
+    --accent2: #3d7a35;
+    --accent-bg: #eaf3e8;
+    --accent-text: #1e4219;
+    --amber: #92580a;
+    --amber-bg: #fef3e0;
+    --amber-text: #6b3e04;
+    --blue: #1a4a7a;
+    --blue-bg: #e8f0fb;
+    --blue-text: #102d4e;
+    --red: #8b2020;
+    --red-bg: #fceaea;
+    --red-text: #5c1212;
+    --info: #1a5a7a;
+    --info-bg: #e5f2f8;
+    --shadow: 0 1px 3px rgba(0,0,0,.08), 0 4px 16px rgba(0,0,0,.06);
+    --shadow-sm: 0 1px 2px rgba(0,0,0,.06);
+    --radius: 8px;
+    --radius-lg: 12px;
+    --radius-xl: 16px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  /* ─── TOP NAV ─── */
+  .topbar {
+    background: var(--accent);
+    color: #fff;
+    padding: 0 24px;
+    height: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 8px rgba(0,0,0,.18);
+  }
+  .topbar-brand { display: flex; align-items: center; gap: 10px; }
+  .topbar-brand .logo {
+    width: 30px; height: 30px; background: rgba(255,255,255,.2);
+    border-radius: 6px; display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+  }
+  .topbar-brand .brand-name { font-size: 15px; font-weight: 600; letter-spacing: .01em; }
+  .topbar-brand .brand-sub { font-size: 11px; opacity: .7; margin-top: 1px; }
+  .topbar-right { display: flex; align-items: center; gap: 8px; }
+  .version-badge {
+    background: rgba(255,255,255,.15);
+    border: 1px solid rgba(255,255,255,.25);
+    border-radius: 20px;
+    padding: 3px 10px;
+    font-size: 11px;
+    font-weight: 500;
+  }
+
+  /* ─── LAYOUT ─── */
+  .app-container { max-width: 1200px; margin: 0 auto; padding: 24px 20px 48px; }
+
+  /* ─── FURNITURE SELECTOR ─── */
+  .furniture-tabs {
+    display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 20px;
+  }
+  .ftab {
+    display: flex; align-items: center; gap: 8px;
+    padding: 10px 18px;
+    border: 1.5px solid var(--border);
+    background: var(--surface);
+    border-radius: var(--radius-lg);
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text2);
+    transition: all .15s;
+    box-shadow: var(--shadow-sm);
+  }
+  .ftab:hover { border-color: var(--border2); background: var(--surface2); color: var(--text); }
+  .ftab.active {
+    border-color: var(--accent); background: var(--accent-bg);
+    color: var(--accent-text); box-shadow: 0 0 0 3px rgba(45,90,39,.1);
+  }
+  .ftab .icon { font-size: 18px; }
+
+  /* ─── MAIN GRID ─── */
+  .main-grid {
+    display: grid;
+    grid-template-columns: 310px 1fr;
+    gap: 20px;
+    align-items: start;
+  }
+  @media(max-width: 900px) { .main-grid { grid-template-columns: 1fr; } }
+
+  /* ─── CARD ─── */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+  .card-header {
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--surface2);
+  }
+  .card-header h3 { font-size: 13px; font-weight: 600; color: var(--text); }
+  .card-body { padding: 18px; }
+
+  /* ─── CONFIG PANEL ─── */
+  .config-section { margin-bottom: 18px; }
+  .config-section:last-child { margin-bottom: 0; }
+  .section-title {
+    font-size: 10px; font-weight: 700; letter-spacing: .08em;
+    text-transform: uppercase; color: var(--text3);
+    margin-bottom: 10px;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .section-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+  .form-group { margin-bottom: 12px; }
+  .form-group label {
+    display: block; font-size: 11px; font-weight: 600; color: var(--text2);
+    margin-bottom: 5px;
+  }
+  .form-control {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface);
+    color: var(--text);
+    font-size: 13px;
+    transition: border-color .15s, box-shadow .15s;
+    font-family: inherit;
+  }
+  .form-control:focus {
+    outline: none;
+    border-color: var(--accent2);
+    box-shadow: 0 0 0 3px rgba(45,90,39,.12);
+  }
+  select.form-control { cursor: pointer; }
+  .dims-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .param-group {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 12px;
+  }
+  .param-row {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 8px;
+  }
+  .param-row:last-child { margin-bottom: 0; }
+  .param-label { font-size: 12px; color: var(--text2); }
+  .param-input {
+    width: 80px;
+    padding: 5px 8px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface);
+    color: var(--text);
+    font-size: 13px;
+    font-weight: 600;
+    text-align: center;
+  }
+  .param-input:focus {
+    outline: none; border-color: var(--accent2);
+    box-shadow: 0 0 0 3px rgba(45,90,39,.12);
+  }
+  .range-wrap { display: flex; align-items: center; gap: 8px; }
+  input[type=range] {
+    flex: 1; height: 4px; cursor: pointer;
+    accent-color: var(--accent);
+  }
+  .range-val {
+    min-width: 44px; text-align: center;
+    font-size: 14px; font-weight: 700; color: var(--accent);
+    background: var(--accent-bg); border-radius: var(--radius);
+    padding: 3px 8px;
+  }
+
+  /* ─── METRICS ─── */
+  .metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .metric-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 14px 16px;
+    box-shadow: var(--shadow-sm);
+  }
+  .metric-card.highlight {
+    background: var(--accent-bg);
+    border-color: var(--accent2);
+    box-shadow: 0 0 0 2px rgba(45,90,39,.12);
+  }
+  .metric-card.warn { background: var(--amber-bg); border-color: #d4900f; }
+  .metric-card.info { background: var(--blue-bg); border-color: #3a7abf; }
+  .metric-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--text3); margin-bottom: 6px; }
+  .metric-value { font-size: 20px; font-weight: 700; color: var(--text); line-height: 1; margin-bottom: 3px; }
+  .metric-card.highlight .metric-value { color: var(--accent); }
+  .metric-card.warn .metric-value { color: var(--amber); }
+  .metric-card.info .metric-value { color: var(--blue); }
+  .metric-sub { font-size: 10px; color: var(--text3); }
+
+  /* ─── FORMULA STRIP ─── */
+  .formula-strip {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    font-size: 13px;
+    margin-bottom: 20px;
+  }
+  .formula-strip .f-step { color: var(--text2); }
+  .formula-strip .f-op { color: var(--text3); font-weight: 700; }
+  .formula-strip .f-pct { color: var(--amber); font-weight: 700; background: var(--amber-bg); padding: 2px 8px; border-radius: 20px; }
+  .formula-strip .f-rdm { color: var(--red); font-weight: 700; background: var(--red-bg); padding: 2px 8px; border-radius: 20px; }
+  .formula-strip .f-result { color: var(--accent); font-weight: 700; background: var(--accent-bg); padding: 4px 12px; border-radius: 20px; font-size: 14px; }
+
+  /* ─── BREAKDOWN BARS ─── */
+  .breakdown { margin-bottom: 20px; }
+  .breakdown-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+  .breakdown-label { font-size: 12px; color: var(--text2); width: 100px; flex-shrink: 0; }
+  .breakdown-bar-wrap { flex: 1; background: var(--surface3); border-radius: 4px; height: 16px; overflow: hidden; }
+  .breakdown-bar { height: 100%; border-radius: 4px; transition: width .3s ease; }
+  .breakdown-val { font-size: 11px; font-weight: 600; width: 90px; text-align: right; flex-shrink: 0; }
+
+  /* ─── CUTTING LIST TABLE ─── */
+  .table-wrap { overflow-x: auto; margin-bottom: 8px; border-radius: var(--radius); border: 1px solid var(--border); }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; min-width: 700px; }
+  thead tr { background: var(--surface2); }
+  thead th {
+    padding: 10px 8px;
+    text-align: center;
+    font-weight: 700;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    color: var(--text2);
+    border-bottom: 1.5px solid var(--border);
+    white-space: nowrap;
+  }
+  thead th:first-child { text-align: left; padding-left: 14px; }
+  tbody tr:nth-child(even) { background: var(--surface2); }
+  tbody tr:hover { background: var(--accent-bg); }
+  tbody td { padding: 8px 8px; border-bottom: 1px solid var(--border); }
+  tbody td:first-child { padding-left: 14px; }
+  .grp-header { background: var(--surface3) !important; }
+  .grp-header td {
+    padding: 7px 14px !important;
+    font-size: 10px !important;
+    font-weight: 800 !important;
+    text-transform: uppercase !important;
+    letter-spacing: .08em !important;
+    color: var(--text2) !important;
+    border-bottom: 1px solid var(--border) !important;
+  }
+  .td-code { font-family: 'Courier New', monospace; font-size: 10px; color: var(--text3); text-align: center !important; }
+  .td-name { font-size: 12px; color: var(--text); }
+  .td-num { text-align: center !important; font-size: 12px; }
+  .td-vol { font-family: 'Courier New', monospace; font-size: 10px; text-align: center !important; }
+  .td-vol.bold { font-weight: 700; color: var(--accent); }
+  .pill {
+    display: inline-block; padding: 2px 8px;
+    border-radius: 20px; font-size: 10px; font-weight: 700;
+    letter-spacing: .04em;
+  }
+  .pill-sw { background: var(--amber-bg); color: var(--amber-text); border: 1px solid #d4900f; }
+  .pill-ply { background: var(--blue-bg); color: var(--blue-text); border: 1px solid #3a7abf; }
+  tfoot td {
+    padding: 10px 8px;
+    font-weight: 700;
+    background: var(--surface2);
+    border-top: 2px solid var(--border2);
+    font-size: 12px;
+  }
+  tfoot td:last-child { color: var(--accent); font-size: 13px; text-align: center; }
+
+  /* ─── BOM ─── */
+  .btn-group { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 8px 16px;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface);
+    color: var(--text);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all .15s;
+  }
+  .btn:hover { background: var(--surface2); border-color: var(--border2); }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .btn.primary:hover { background: var(--accent2); }
+  .btn .btn-icon { font-size: 14px; }
+  .bom-box {
+    background: #1a1917;
+    color: #a8e6a3;
+    border-radius: var(--radius);
+    padding: 16px;
+    font-family: 'Courier New', monospace;
+    font-size: 11px;
+    line-height: 1.7;
+    white-space: pre-wrap;
+    word-break: break-word;
+    max-height: 400px;
+    overflow-y: auto;
+    border: 1px solid #333;
+  }
+  .bom-box::-webkit-scrollbar { width: 6px; }
+  .bom-box::-webkit-scrollbar-track { background: #2a2927; }
+  .bom-box::-webkit-scrollbar-thumb { background: #555; border-radius: 3px; }
+
+  /* ─── FOOTER ─── */
+  .footer {
+    margin-top: 40px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .footer-left { font-size: 11px; color: var(--text3); line-height: 1.8; }
+  .footer-right { display: flex; gap: 6px; flex-wrap: wrap; }
+  .tag {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 20px; padding: 3px 10px;
+    font-size: 10px; color: var(--text3); font-weight: 600;
+  }
+  .tag.green { background: var(--accent-bg); border-color: var(--accent2); color: var(--accent-text); }
+
+  /* ─── TOAST ─── */
+  #toast {
+    position: fixed; bottom: 24px; right: 24px;
+    background: var(--accent); color: #fff;
+    padding: 10px 20px; border-radius: var(--radius-lg);
+    font-size: 13px; font-weight: 600;
+    box-shadow: 0 4px 16px rgba(0,0,0,.2);
+    opacity: 0; transform: translateY(10px);
+    transition: all .25s; pointer-events: none; z-index: 999;
+  }
+  #toast.show { opacity: 1; transform: translateY(0); }
+
+  /* ─── TABS CONTENT ─── */
+  .tab-btns { display: flex; gap: 4px; margin-bottom: 16px; }
+  .tab-btn {
+    padding: 6px 14px; border: 1px solid var(--border); border-radius: 20px;
+    background: var(--surface); color: var(--text2); font-size: 12px;
+    font-weight: 600; cursor: pointer; transition: all .15s;
+  }
+  .tab-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .tab-btn:hover:not(.active) { background: var(--surface2); }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+</style>
+</head>
+<body>
+
+<nav class="topbar">
+  <div class="topbar-brand">
+    <div class="logo">🪵</div>
+    <div>
+      <div class="brand-name">Wood Volume Calculator</div>
+      <div class="brand-sub">Jepara ERP Suite — Modul Cutting List &amp; BOM</div>
+    </div>
+  </div>
+  <div class="topbar-right">
+    <span class="version-badge">v1.1  ·  2026</span>
+  </div>
+</nav>
+
+<div class="app-container">
+
+  <!-- Furniture Selector -->
+  <div class="furniture-tabs" id="ftabs"></div>
+
+  <div class="main-grid">
+
+    <!-- LEFT: Config Panel -->
+    <div class="card">
+      <div class="card-header">
+        <h3>⚙️  Parameter &amp; Konfigurasi</h3>
+      </div>
+      <div class="card-body">
+        <div class="config-section">
+          <div class="section-title">Tipe &amp; Ukuran</div>
+          <div class="form-group">
+            <label>Pilih Tipe Standar</label>
+            <select class="form-control" id="subtype-sel"></select>
+          </div>
+          <div id="dims-container"></div>
+        </div>
+        <div class="config-section">
+          <div class="section-title">Parameter Kayu Log</div>
+          <div class="param-group">
+            <div class="param-row">
+              <span class="param-label">Rendemen Log</span>
+              <div style="display:flex;align-items:center;gap:8px">
+                <input type="range" min="20" max="70" value="32" id="rng-rendemen" style="width:90px">
+                <input type="number" class="param-input" min="20" max="70" value="32" id="inp-rendemen">
+                <span style="font-size:11px;color:var(--text3)">%</span>
+              </div>
+            </div>
+            <div class="param-row">
+              <span class="param-label">Waste Factor</span>
+              <div style="display:flex;align-items:center;gap:8px">
+                <input type="range" min="5" max="40" value="15" id="rng-waste" style="width:90px">
+                <input type="number" class="param-input" min="5" max="40" value="15" id="inp-waste">
+                <span style="font-size:11px;color:var(--text3)">%</span>
+              </div>
+            </div>
+            <div class="param-row">
+              <span class="param-label">Std batang (cm)</span>
+              <div style="display:flex;align-items:center;gap:6px">
+                <input type="number" class="param-input" style="width:55px" value="4" id="inp-ba"> ×
+                <input type="number" class="param-input" style="width:55px" value="6" id="inp-bb"> ×
+                <input type="number" class="param-input" style="width:60px" value="400" id="inp-blen">
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="config-section">
+          <div class="section-title">Harga Material (Opsional)</div>
+          <div class="param-group">
+            <div class="param-row">
+              <span class="param-label">Solid Wood / m³</span>
+              <input type="number" class="param-input" style="width:100px" value="4500000" id="inp-swprice">
+            </div>
+            <div class="param-row">
+              <span class="param-label">Plywood / lembar</span>
+              <input type="number" class="param-input" style="width:100px" value="185000" id="inp-plyprice">
+            </div>
+          </div>
+          <div id="cost-result" style="margin-top:10px;font-size:12px;color:var(--text2)"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: Results -->
+    <div>
+
+      <!-- Metrics -->
+      <div class="metrics-grid" id="metrics"></div>
+
+      <!-- Formula strip -->
+      <div class="formula-strip" id="formula"></div>
+
+      <!-- Tabs: Cutting List | Volume Detail | BOM JSON -->
+      <div class="card" style="margin-bottom:20px">
+        <div class="card-header">
+          <div class="tab-btns">
+            <button class="tab-btn active" onclick="switchTab('cutting')">✂️  Cutting List</button>
+            <button class="tab-btn" onclick="switchTab('volume')">📊  Volume Detail</button>
+            <button class="tab-btn" onclick="switchTab('bom')">🔗  BOM JSON</button>
+          </div>
+          <span id="tbl-meta" style="font-size:11px;color:var(--text3)"></span>
+        </div>
+        <div class="card-body">
+
+          <div class="tab-content active" id="tab-cutting">
+            <div class="table-wrap">
+              <table id="cl-table">
+                <thead>
+                  <tr>
+                    <th style="text-align:left">Kode / Nama Komponen</th>
+                    <th>Material</th>
+                    <th>Qty</th>
+                    <th>P (cm)</th>
+                    <th>L (cm)</th>
+                    <th>T (cm)</th>
+                    <th>Vol/pcs (m³)</th>
+                    <th>Vol Total (m³)</th>
+                    <th>Vol Log (m³)</th>
+                  </tr>
+                </thead>
+                <tbody id="cl-body"></tbody>
+                <tfoot id="cl-foot"></tfoot>
+              </table>
+            </div>
+          </div>
+
+          <div class="tab-content" id="tab-volume">
+            <div id="vol-detail"></div>
+          </div>
+
+          <div class="tab-content" id="tab-bom">
+            <div class="btn-group">
+              <button class="btn primary" onclick="copyBOM()">
+                <span class="btn-icon">📋</span> Copy JSON
+              </button>
+              <button class="btn" onclick="downloadBOM()">
+                <span class="btn-icon">⬇️</span> Download .json
+              </button>
+              <button class="btn" onclick="downloadExcelCSV()">
+                <span class="btn-icon">📄</span> Export CSV
+              </button>
+            </div>
+            <div id="bom-preview" class="bom-box"></div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </div><!-- end main-grid -->
+
+  <div class="footer">
+    <div class="footer-left">
+      <b>Wood Volume Calculator</b> — Jepara ERP Suite<br>
+      Modul: Cutting List · Volume Kayu Log · BOM Export &nbsp;|&nbsp; © 2026
+    </div>
+    <div class="footer-right">
+      <span class="tag green">✅ Offline Ready</span>
+      <span class="tag">Tempat Tidur</span>
+      <span class="tag">Lemari</span>
+      <span class="tag">Kursi</span>
+      <span class="tag">Sofa</span>
+      <span class="tag">Meja</span>
+    </div>
+  </div>
+
+</div>
+
+<div id="toast">✅ Tersalin ke clipboard!</div>
+
+<script>
+// ══════════════════════════════════════════════
+// DATA & ENGINE
+// ══════════════════════════════════════════════
+
+const TEMPLATES = {
+  bed: {
+    label: 'Tempat Tidur', icon: '🛏️',
+    subtypes: [
+      {l:'Single  90×200',  d:{length:197,width:95, h_hb:90,h_fb:60}},
+      {l:'Double 120×200',  d:{length:207,width:127,h_hb:90,h_fb:60}},
+      {l:'Queen  160×200',  d:{length:207,width:167,h_hb:90,h_fb:60}},
+      {l:'King   180×200',  d:{length:207,width:187,h_hb:100,h_fb:65}},
+      {l:'Custom …',        d:null},
+    ],
+    dims:[
+      {k:'length',l:'Panjang Total (cm)',min:160,max:260,step:1},
+      {k:'width', l:'Lebar Total (cm)',  min:80, max:220,step:1},
+      {k:'h_hb',  l:'Tinggi Headboard', min:60, max:150,step:1},
+      {k:'h_fb',  l:'Tinggi Footboard', min:40, max:110,step:1},
+    ],
+    gen: bedComps,
+  },
+  lemari: {
+    label: 'Lemari', icon: '🗄️',
+    subtypes: [
+      {l:'2 Pintu  120cm', d:{width:120,height:200,depth:60,doors:2}},
+      {l:'3 Pintu  180cm', d:{width:180,height:200,depth:60,doors:3}},
+      {l:'4 Pintu  240cm', d:{width:240,height:200,depth:60,doors:4}},
+      {l:'Custom …',       d:null},
+    ],
+    dims:[
+      {k:'width',  l:'Lebar (cm)',       min:80, max:320,step:1},
+      {k:'height', l:'Tinggi (cm)',      min:150,max:260,step:1},
+      {k:'depth',  l:'Kedalaman (cm)',   min:40, max:90, step:1},
+      {k:'doors',  l:'Jumlah Pintu',     min:1,  max:6,  step:1},
+    ],
+    gen: lemariComps,
+  },
+  kursi: {
+    label: 'Kursi', icon: '🪑',
+    subtypes: [
+      {l:'Kursi Makan  45×45', d:{width:45,depth:45,h_seat:45,h_back:90}},
+      {l:'Arm Chair    60×55', d:{width:60,depth:55,h_seat:45,h_back:95}},
+      {l:'Bar Stool',          d:{width:40,depth:40,h_seat:72,h_back:108}},
+      {l:'Bangku Panjang',     d:{width:120,depth:35,h_seat:45,h_back:45}},
+      {l:'Custom …',           d:null},
+    ],
+    dims:[
+      {k:'width',  l:'Lebar (cm)',       min:30,max:150,step:1},
+      {k:'depth',  l:'Kedalaman (cm)',   min:25,max:70, step:1},
+      {k:'h_seat', l:'Tinggi Dudukan',   min:35,max:85, step:1},
+      {k:'h_back', l:'Tinggi Total',     min:40,max:130,step:1},
+    ],
+    gen: kursiComps,
+  },
+  sofa: {
+    label: 'Sofa', icon: '🛋️',
+    subtypes: [
+      {l:'1 Seater  90×80',   d:{width:90, depth:80,height:85,seats:1}},
+      {l:'2 Seater 160×80',   d:{width:160,depth:80,height:85,seats:2}},
+      {l:'3 Seater 220×85',   d:{width:220,depth:85,height:90,seats:3}},
+      {l:'L-Shape  300×200',  d:{width:300,depth:90,height:90,seats:4}},
+      {l:'Custom …',          d:null},
+    ],
+    dims:[
+      {k:'width',  l:'Lebar (cm)',       min:80, max:360,step:1},
+      {k:'depth',  l:'Kedalaman (cm)',   min:60, max:130,step:1},
+      {k:'height', l:'Tinggi (cm)',      min:60, max:115,step:1},
+      {k:'seats',  l:'Jumlah Seat',      min:1,  max:6,  step:1},
+    ],
+    gen: sofaComps,
+  },
+  meja: {
+    label: 'Meja', icon: '🪵',
+    subtypes: [
+      {l:'Meja Makan   120×75',  d:{length:120,width:75, height:75, top_t:3,  legs:4, drawers:0, shelf:0}},
+      {l:'Meja Makan   160×80',  d:{length:160,width:80, height:75, top_t:3,  legs:4, drawers:0, shelf:0}},
+      {l:'Meja Makan   200×90',  d:{length:200,width:90, height:75, top_t:3,  legs:4, drawers:0, shelf:0}},
+      {l:'Meja Kantor  120×60',  d:{length:120,width:60, height:75, top_t:2.5,legs:4, drawers:1, shelf:0}},
+      {l:'Meja Kantor  160×70',  d:{length:160,width:70, height:75, top_t:2.5,legs:4, drawers:2, shelf:0}},
+      {l:'Meja Kopi     90×50',  d:{length:90, width:50, height:45, top_t:3,  legs:4, drawers:0, shelf:1}},
+      {l:'Meja Kopi    120×60',  d:{length:120,width:60, height:45, top_t:3,  legs:4, drawers:0, shelf:1}},
+      {l:'Meja Nakas    50×40',  d:{length:50, width:40, height:60, top_t:2,  legs:4, drawers:1, shelf:1}},
+      {l:'Meja Konsol  120×35',  d:{length:120,width:35, height:80, top_t:2.5,legs:4, drawers:0, shelf:1}},
+      {l:'Custom …',             d:null},
+    ],
+    dims:[
+      {k:'length',  l:'Panjang (cm)',      min:40,  max:300, step:1},
+      {k:'width',   l:'Lebar / Depth (cm)',min:30,  max:120, step:1},
+      {k:'height',  l:'Tinggi (cm)',       min:35,  max:110, step:1},
+      {k:'top_t',   l:'Tebal Top (cm)',    min:1.5, max:6,   step:0.5},
+      {k:'legs',    l:'Jumlah Kaki',       min:4,   max:6,   step:2},
+      {k:'drawers', l:'Jumlah Laci',       min:0,   max:4,   step:1},
+      {k:'shelf',   l:'Rak Bawah (0/1)',   min:0,   max:1,   step:1},
+    ],
+    gen: mejaComps,
+  },
+};
+
+// ── Component generators ──
+
+function bedComps({length=197,width=95,h_hb=90,h_fb=60}){
+  const p=4, iW=width-2*p, iL=length-2*p;
+  const n=Math.max(5,Math.round((iL-7)/7)+1);
+  return[
+    {id:'KK-01',g:'Kaki / Leg',       name:'Kaki Headboard',              mat:'Solid Wood',qty:2, P:h_hb,    L:p,  T:p},
+    {id:'KK-02',g:'Kaki / Leg',       name:'Kaki Footboard',              mat:'Solid Wood',qty:2, P:h_fb,    L:p,  T:p},
+    {id:'SR-01',g:'Side Rail',        name:'Side Rail Kanan & Kiri',      mat:'Solid Wood',qty:2, P:iL,      L:23, T:2.5},
+    {id:'HB-01',g:'Headboard',        name:'Top Rail Headboard',          mat:'Solid Wood',qty:1, P:iW,      L:8,  T:3},
+    {id:'HB-02',g:'Headboard',        name:'Mid Rail Headboard',          mat:'Solid Wood',qty:1, P:iW,      L:8,  T:3},
+    {id:'HB-03',g:'Headboard',        name:'Bottom Rail Headboard',       mat:'Solid Wood',qty:1, P:iW,      L:8,  T:3},
+    {id:'HB-04',g:'Headboard',        name:'Panel Atas Headboard',        mat:'Plywood',   qty:1, P:iW,      L:Math.max(12,h_hb-23-24-4), T:1.8},
+    {id:'HB-05',g:'Headboard',        name:'Panel Bawah Headboard',       mat:'Plywood',   qty:1, P:iW,      L:12, T:1.8},
+    {id:'FB-01',g:'Footboard',        name:'Top Rail Footboard',          mat:'Solid Wood',qty:1, P:iW,      L:8,  T:3},
+    {id:'FB-02',g:'Footboard',        name:'Bottom Rail Footboard',       mat:'Solid Wood',qty:1, P:iW,      L:8,  T:3},
+    {id:'FB-03',g:'Footboard',        name:'Panel Footboard',             mat:'Plywood',   qty:1, P:iW,      L:Math.max(8,h_fb-16-8), T:1.8},
+    {id:'SL-00',g:'Slat System',      name:'Slat Ledger Strip',           mat:'Solid Wood',qty:2, P:iL,      L:3,  T:2},
+    {id:'SL-01',g:'Slat System',      name:'Wood Slat — Palang Kasur',    mat:'Solid Wood',qty:n, P:width-5, L:7,  T:1.5},
+  ];
+}
+
+function lemariComps({width=120,height=200,depth=60,doors=2}){
+  const pt=2.5,iW=Math.round(width-2*pt);
+  const sh=Math.max(1,Math.floor(height/70)-1);
+  const dW=Math.round(iW/doors)-3, dH=height-10;
+  return[
+    {id:'LM-01',g:'Carcass',     name:'Panel Samping',                mat:'Plywood',   qty:2,       P:height,    L:depth,    T:pt},
+    {id:'LM-02',g:'Carcass',     name:'Panel Atas',                   mat:'Plywood',   qty:1,       P:iW,        L:depth,    T:pt},
+    {id:'LM-03',g:'Carcass',     name:'Panel Bawah',                  mat:'Plywood',   qty:1,       P:iW,        L:depth,    T:pt},
+    {id:'LM-04',g:'Carcass',     name:'Panel Belakang (Back)',         mat:'Plywood',   qty:1,       P:height,    L:width,    T:0.6},
+    {id:'LM-05',g:'Carcass',     name:'Rak Tengah (Shelf)',           mat:'Plywood',   qty:sh,      P:iW,        L:depth-2,  T:pt},
+    {id:'LM-06',g:'Pintu',       name:'Daun Pintu',                   mat:'Plywood',   qty:doors,   P:dH,        L:dW,       T:1.8},
+    {id:'LM-07',g:'Pintu',       name:'Stile Pintu — Vertikal',       mat:'Solid Wood',qty:doors*2, P:dH,        L:6,        T:3},
+    {id:'LM-08',g:'Pintu',       name:'Rail Pintu Atas & Bawah',      mat:'Solid Wood',qty:doors*2, P:dW-12,     L:6,        T:3},
+    {id:'LM-09',g:'Base Frame',  name:'Base Rail Depan & Belakang',   mat:'Solid Wood',qty:2,       P:width,     L:8,        T:4},
+    {id:'LM-10',g:'Base Frame',  name:'Base Rail Samping',            mat:'Solid Wood',qty:2,       P:depth-8,   L:8,        T:4},
+    {id:'LM-11',g:'Internal',    name:'Hanging Rail (Gantungan)',     mat:'Solid Wood',qty:1,       P:iW,        L:4,        T:4},
+    {id:'LM-12',g:'Internal',    name:'Laci Drawer (opsional)',       mat:'Plywood',   qty:2,       P:iW-4,      L:depth-8,  T:1.5},
+  ];
+}
+
+function kursiComps({width=45,depth=45,h_seat=45,h_back=90}){
+  const sc=Math.max(2,Math.floor((width-8)/15));
+  const slW=Math.round((width-10)/sc);
+  return[
+    {id:'KR-01',g:'Kaki',         name:'Kaki Depan',                   mat:'Solid Wood',qty:2, P:h_seat,         L:4, T:4},
+    {id:'KR-02',g:'Kaki',         name:'Kaki Belakang',                mat:'Solid Wood',qty:2, P:h_back,         L:4, T:4},
+    {id:'KR-03',g:'Rangka Seat',  name:'Front Rail',                   mat:'Solid Wood',qty:1, P:width-8,        L:6, T:3},
+    {id:'KR-04',g:'Rangka Seat',  name:'Back Rail',                    mat:'Solid Wood',qty:1, P:width-8,        L:6, T:3},
+    {id:'KR-05',g:'Rangka Seat',  name:'Side Rail',                    mat:'Solid Wood',qty:2, P:depth-8,        L:6, T:3},
+    {id:'KR-06',g:'Sandaran',     name:'Top Rail Sandaran',            mat:'Solid Wood',qty:1, P:width-8,        L:6, T:3},
+    {id:'KR-07',g:'Sandaran',     name:'Slat Sandaran',                mat:'Solid Wood',qty:sc,P:Math.max(8,h_back-h_seat-14),L:slW,T:2},
+    {id:'KR-08',g:'Dudukan',      name:'Panel Dudukan (Seat Board)',   mat:'Plywood',   qty:1, P:width-6,        L:depth-6, T:1.8},
+    {id:'KR-09',g:'Dudukan',      name:'Corner Block',                 mat:'Solid Wood',qty:4, P:6,              L:6, T:6},
+  ];
+}
+
+function sofaComps({width=90,depth=80,height=85,seats=1}){
+  const aW=15, lH=15, sW=width-2*aW;
+  const sc=Math.max(3,Math.floor(sW/18));
+  return[
+    {id:'SF-01',g:'Kaki',              name:'Kaki Sofa',                     mat:'Solid Wood',qty:4+(seats-1)*2, P:lH,         L:7,        T:7},
+    {id:'SF-02',g:'Arm Rest',          name:'Panel Arm (Sandaran Tangan)',   mat:'Plywood',   qty:2,            P:height-lH,  L:depth,    T:1.8},
+    {id:'SF-03',g:'Arm Rest',          name:'Top Arm Rest',                  mat:'Solid Wood',qty:2,            P:depth,      L:aW,       T:4},
+    {id:'SF-04',g:'Rangka Dudukan',    name:'Rail Dudukan Depan & Belakang', mat:'Solid Wood',qty:2,            P:sW-8,       L:7,        T:4},
+    {id:'SF-05',g:'Rangka Dudukan',    name:'Rail Dudukan Samping',          mat:'Solid Wood',qty:2,            P:depth-8,    L:7,        T:4},
+    {id:'SF-06',g:'Rangka Dudukan',    name:'Spring Slat Dudukan',           mat:'Solid Wood',qty:sc,           P:depth-8,    L:5,        T:2},
+    {id:'SF-07',g:'Sandaran Belakang', name:'Rail Sandaran Atas & Bawah',    mat:'Solid Wood',qty:2,            P:sW-8,       L:7,        T:4},
+    {id:'SF-08',g:'Sandaran Belakang', name:'Panel Sandaran',                mat:'Plywood',   qty:1,            P:sW-8,       L:height-lH-18,T:1.8},
+    {id:'SF-09',g:'Sandaran Belakang', name:'Slat Sandaran Vertikal',        mat:'Solid Wood',qty:Math.max(3,Math.floor(sW/25)),P:height-lH-18,L:5,T:2},
+  ];
+}
+
+function mejaComps({length=120,width=75,height=75,top_t=3,legs=4,drawers=0,shelf=0}){
+  const lSz = height <= 50 ? 5 : (height <= 75 ? 6 : 7);
+  const lH  = height - top_t;
+  const iL  = length - 2*lSz;
+  const iW  = width  - 2*lSz;
+  const aH  = Math.round(lH * 0.25);
+  const dW  = drawers > 0 ? Math.round((iL - 4*(drawers-1)) / drawers) : 0;
+  const dH  = Math.min(aH - 4, 16);
+  const dD  = width - lSz*2 - 6;
+  const result = [];
+
+  // ── Table Top ──
+  if (top_t >= 3) {
+    const boards = Math.ceil(width / 12);
+    result.push({id:'MJ-01',g:'Table Top',name:'Top Panel — Papan Solid (Glue-up)',mat:'Solid Wood',qty:boards, P:length,        L:Math.ceil(width/boards)+1,T:top_t});
+  } else {
+    result.push({id:'MJ-01',g:'Table Top',name:'Top Panel (Plywood)',              mat:'Plywood',   qty:1,      P:length,        L:width,     T:top_t});
+    result.push({id:'MJ-02',g:'Table Top',name:'Lipping Samping (Solid)',           mat:'Solid Wood',qty:2,      P:width,         L:3,         T:top_t});
+    result.push({id:'MJ-03',g:'Table Top',name:'Lipping Depan & Belakang (Solid)', mat:'Solid Wood',qty:2,      P:length+6,      L:3,         T:top_t});
+  }
+
+  // ── Kaki ──
+  result.push({id:'MJ-04',g:'Kaki / Leg',  name:'Kaki Meja',                       mat:'Solid Wood',qty:legs,   P:lH,            L:lSz,       T:lSz});
+
+  // ── Apron / Rail ──
+  result.push({id:'MJ-05',g:'Apron / Rail',name:'Apron Depan & Belakang',           mat:'Solid Wood',qty:2,      P:iL,            L:aH,        T:2.5});
+  result.push({id:'MJ-06',g:'Apron / Rail',name:'Apron Samping',                    mat:'Solid Wood',qty:2,      P:iW,            L:aH,        T:2.5});
+  result.push({id:'MJ-07',g:'Apron / Rail',name:'Corner Block (Klam Sudut)',         mat:'Solid Wood',qty:4,      P:6,             L:6,         T:6});
+
+  // ── Stretcher (meja tinggi) ──
+  if (height >= 70 && legs === 4) {
+    result.push({id:'MJ-08',g:'Stretcher',  name:'H-Stretcher Tengah',              mat:'Solid Wood',qty:1,      P:iL,            L:5,         T:3});
+    result.push({id:'MJ-09',g:'Stretcher',  name:'Stretcher Samping',               mat:'Solid Wood',qty:2,      P:Math.max(10,iW-10), L:5,    T:3});
+  }
+
+  // ── Rak Bawah ──
+  if (shelf) {
+    result.push({id:'MJ-10',g:'Rak Bawah',  name:'Panel Rak Bawah (Plywood)',       mat:'Plywood',   qty:1,      P:iL+lSz,        L:iW+lSz,    T:1.8});
+    result.push({id:'MJ-11',g:'Rak Bawah',  name:'Lipping Rak Depan & Belakang',    mat:'Solid Wood',qty:2,      P:iL+lSz,        L:3,         T:1.8});
+  }
+
+  // ── Laci / Drawer ──
+  if (drawers > 0) {
+    result.push({id:'MJ-12',g:'Laci / Drawer',name:'Drawer Front',                  mat:'Solid Wood',qty:drawers,   P:dW,        L:dH+2,      T:1.8});
+    result.push({id:'MJ-13',g:'Laci / Drawer',name:'Drawer Box — Kiri & Kanan',     mat:'Plywood',   qty:drawers*2,  P:dD,        L:dH,        T:1.2});
+    result.push({id:'MJ-14',g:'Laci / Drawer',name:'Drawer Box — Depan & Belakang', mat:'Plywood',   qty:drawers*2,  P:dW-4,      L:dH,        T:1.2});
+    result.push({id:'MJ-15',g:'Laci / Drawer',name:'Drawer Bottom (Alas Laci)',      mat:'Plywood',   qty:drawers,    P:dD-2,      L:dW-4,      T:0.6});
+    result.push({id:'MJ-16',g:'Laci / Drawer',name:'Drawer Rail / Slide Block',      mat:'Solid Wood',qty:drawers*2,  P:dD,        L:2,         T:2});
+  }
+
+  return result;
+}
+
+// ── Volume calc ──
+function calcVol(comps, waste, rendemen) {
+  let sw=0, pw=0;
+  comps.forEach(c => {
+    const v = c.qty * c.P * c.L * c.T / 1e6;
+    c.mat === 'Solid Wood' ? sw += v : pw += v;
+  });
+  const net = sw + pw;
+  const withW = net * (1 + waste/100);
+  const log = withW / (rendemen/100);
+  const swLog = sw * (1 + waste/100) / (rendemen/100);
+  const pwLog = pw * (1 + waste/100) / (rendemen/100);
+  return {sw, pw, net, withW, log, swLog, pwLog};
+}
+
+function f(n, d=4) { return (+n).toFixed(d); }
+function fmoney(n) { return 'Rp ' + Math.round(n).toLocaleString('id-ID'); }
+
+// ══════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════
+
+const state = {
+  ftype: 'bed',
+  sidx: 0,
+  dims: {...TEMPLATES.bed.subtypes[0].d},
+  rendemen: 32,
+  waste: 15,
+  ba: 4, bb: 6, blen: 400,
+  swPrice: 4500000,
+  plyPrice: 185000,
+  showBOM: false,
+  activeTab: 'cutting',
+};
+
+// ══════════════════════════════════════════════
+// RENDER
+// ══════════════════════════════════════════════
+
+function render() {
+  const tmpl = TEMPLATES[state.ftype];
+  let comps = [];
+  try { comps = tmpl.gen(state.dims || {}); } catch(e) {}
+
+  const grouped = {};
+  comps.forEach(c => { (grouped[c.g] = grouped[c.g]||[]).push(c); });
+
+  const vol = calcVol(comps, state.waste, state.rendemen);
+  const totalPcs = comps.reduce((s,c) => s+c.qty, 0);
+  const stdBatang = state.ba * state.bb * state.blen / 1e6;
+  const batangNeeded = Math.ceil(vol.swLog / stdBatang);
+  const plyArea = comps.filter(c=>c.mat==='Plywood').reduce((s,c)=>s+c.qty*c.P*c.L/1e4,0);
+  const plySheets = Math.ceil(plyArea * (1+state.waste/100) / 2.9768);
+
+  // Harga
+  const costSW  = vol.swLog * state.swPrice;
+  const costPly = plySheets * state.plyPrice;
+
+  // ── Metrics ──
+  const mGrid = document.getElementById('metrics');
+  mGrid.innerHTML = '';
+  [
+    {l:'Volume Bersih',  v:f(vol.net,4)+' m³',      s:'Net finished size',      cls:''},
+    {l:`+ Waste ${state.waste}%`,  v:f(vol.withW,4)+' m³', s:'Setelah waste',       cls:'warn'},
+    {l:'Vol Log Dibutuhkan',v:f(vol.log,4)+' m³',   s:'Yang harus dibeli',      cls:'highlight'},
+    {l:`Btg ${state.ba}/6×${state.blen}cm`,v:batangNeeded+' batang',s:'Estimasi solid wood',cls:'info'},
+    {l:'Plywood',        v:plySheets+' lembar',      s:'122×244cm / lembar',     cls:'info'},
+    {l:'Est. Biaya Mat.',v:fmoney(costSW+costPly),   s:'SW + Plywood',           cls:''},
+  ].forEach(m => {
+    const d = document.createElement('div');
+    d.className = 'metric-card ' + m.cls;
+    d.innerHTML = `<div class="metric-label">${m.l}</div><div class="metric-value">${m.v}</div><div class="metric-sub">${m.s}</div>`;
+    mGrid.appendChild(d);
+  });
+
+  // ── Formula strip ──
+  document.getElementById('formula').innerHTML =
+    `<span class="f-step">Vol Bersih <b>${f(vol.net,4)} m³</b></span>
+     <span class="f-op">×</span>
+     <span class="f-pct">(1 + ${state.waste}%)</span>
+     <span class="f-op">=</span>
+     <span class="f-step">${f(vol.withW,4)} m³</span>
+     <span class="f-op">÷</span>
+     <span class="f-rdm">Rendemen ${state.rendemen}%</span>
+     <span class="f-op">=</span>
+     <span class="f-result">📦 ${f(vol.log,4)} m³ log</span>`;
+
+  // ── Cutting List table ──
+  document.getElementById('tbl-meta').textContent = `${comps.length} komponen · ${totalPcs} pcs`;
+  const tbody = document.getElementById('cl-body');
+  tbody.innerHTML = '';
+  const GRP_COLORS = ['#e8f5e9','#fff8e1','#e3f2fd','#fce4ec','#f3e5f5','#e0f2f1'];
+  let gi = 0;
+  Object.entries(grouped).forEach(([grp, gcomps]) => {
+    const gc = GRP_COLORS[gi++ % GRP_COLORS.length];
+    const grow = document.createElement('tr');
+    grow.className = 'grp-header';
+    grow.innerHTML = `<td colspan="9" style="background:${gc}!important">▸ ${grp.toUpperCase()}</td>`;
+    tbody.appendChild(grow);
+    gcomps.forEach(c => {
+      const vpcs = c.P*c.L*c.T/1e6;
+      const vtot = c.qty*vpcs;
+      const vlog = vtot*(1+state.waste/100)/(state.rendemen/100);
+      const isSW = c.mat === 'Solid Wood';
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td><span class="td-code">${c.id}</span> <span class="td-name">${c.name}</span></td>
+        <td class="td-num"><span class="pill ${isSW?'pill-sw':'pill-ply'}">${isSW?'SW':'PLY'}</span></td>
+        <td class="td-num"><b>${c.qty}</b></td>
+        <td class="td-num">${c.P}</td>
+        <td class="td-num">${c.L}</td>
+        <td class="td-num">${c.T}</td>
+        <td class="td-vol">${f(vpcs,6)}</td>
+        <td class="td-vol">${f(vtot,6)}</td>
+        <td class="td-vol bold">${f(vlog,6)}</td>`;
+      tbody.appendChild(tr);
+    });
+  });
+  const tfoot = document.getElementById('cl-foot');
+  tfoot.innerHTML = `<tr>
+    <td colspan="6" style="text-align:right;color:var(--text2)">Total Volume Bersih (Net):</td>
+    <td></td>
+    <td style="text-align:center;font-family:'Courier New';color:var(--accent)">${f(vol.net,6)} m³</td>
+    <td style="text-align:center;font-family:'Courier New'">—</td>
+  </tr>
+  <tr>
+    <td colspan="6" style="text-align:right;color:var(--text2)">Total Volume Log Dibutuhkan:</td>
+    <td></td>
+    <td></td>
+    <td style="text-align:center;font-family:'Courier New';color:var(--accent);font-size:13px">${f(vol.log,4)} m³</td>
+  </tr>`;
+
+  // ── Volume Detail ──
+  document.getElementById('vol-detail').innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px">
+      <div style="background:${GRP_COLORS[1]};border-radius:var(--radius);padding:14px;border:1px solid var(--border)">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--amber);margin-bottom:8px">🪵 Solid Wood</div>
+        <div style="font-size:13px;color:var(--text2)">Volume Bersih</div>
+        <div style="font-size:22px;font-weight:700;color:var(--amber)">${f(vol.sw,4)} m³</div>
+        <div style="font-size:12px;color:var(--text2);margin-top:6px">Vol Log (÷${state.rendemen}%)</div>
+        <div style="font-size:18px;font-weight:700;color:var(--amber-text)">${f(vol.swLog,4)} m³</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:4px">≈ ${batangNeeded} batang ${state.ba}×${state.bb}×${state.blen}cm</div>
+        <div style="font-size:11px;color:var(--text3)">Est. biaya: ${fmoney(costSW)}</div>
+      </div>
+      <div style="background:${GRP_COLORS[2]};border-radius:var(--radius);padding:14px;border:1px solid var(--border)">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--blue);margin-bottom:8px">📐 Plywood Panel</div>
+        <div style="font-size:13px;color:var(--text2)">Volume Bersih</div>
+        <div style="font-size:22px;font-weight:700;color:var(--blue)">${f(vol.pw,4)} m³</div>
+        <div style="font-size:12px;color:var(--text2);margin-top:6px">Luas Permukaan</div>
+        <div style="font-size:18px;font-weight:700;color:var(--blue-text)">${f(plyArea,2)} m²</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:4px">≈ ${plySheets} lembar 122×244cm</div>
+        <div style="font-size:11px;color:var(--text3)">Est. biaya: ${fmoney(costPly)}</div>
+      </div>
+    </div>
+    <div style="background:var(--accent-bg);border:2px solid var(--accent2);border-radius:var(--radius-lg);padding:16px">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--accent);margin-bottom:10px">📋 Langkah Perhitungan</div>
+      ${[
+        ['1','Vol Bersih (Ukuran Jadi)',f(vol.net,4)+' m³','Semua komponen P×L×T'],
+        ['2','× (1 + Waste '+state.waste+'%)',f(vol.withW,4)+' m³','Allowance pemotongan & cacat'],
+        ['3','÷ Rendemen '+state.rendemen+'%',f(vol.log,4)+' m³','Konversi log → sawn timber'],
+        ['4','Est. Batang SW',batangNeeded+' btg','@ '+state.ba+'×'+state.bb+'×'+state.blen+'cm = '+f(stdBatang,4)+' m³/btg'],
+        ['4','Est. Lembar Plywood',plySheets+' lbr','@ 122×244 cm = 2.9768 m²/lbr'],
+        ['5','Total Biaya Material',fmoney(costSW+costPly),'Harga log + plywood'],
+      ].map(([n,l,v,s])=>`
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;font-size:12px">
+          <span style="min-width:20px;height:20px;background:var(--accent);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700">${n}</span>
+          <span style="flex:1;color:var(--text2)">${l}</span>
+          <span style="font-weight:700;color:var(--accent-text)">${v}</span>
+          <span style="font-size:10px;color:var(--text3);min-width:170px;text-align:right">${s}</span>
+        </div>`).join('')}
+    </div>`;
+
+  // ── BOM JSON ──
+  const bomData = {
+    module: 'WOOD_CALC_PRO',
+    version: '1.0',
+    type: state.ftype.toUpperCase(),
+    subtype: tmpl.subtypes[state.sidx].l.trim(),
+    ref: 'BOM-' + Date.now().toString(36).toUpperCase(),
+    generated: new Date().toISOString(),
+    params: {
+      dims: state.dims,
+      waste_pct: state.waste,
+      rendemen_pct: state.rendemen,
+      batang_std_cm: [state.ba, state.bb, state.blen],
+    },
+    summary: {
+      total_components: comps.length,
+      total_pcs: totalPcs,
+      vol_net_m3: +f(vol.net,6),
+      vol_with_waste_m3: +f(vol.withW,6),
+      vol_log_required_m3: +f(vol.log,4),
+      solid_wood_log_m3: +f(vol.swLog,4),
+      plywood_area_m2: +f(plyArea,2),
+      plywood_sheets: plySheets,
+      batang_needed: batangNeeded,
+      est_cost_idr: Math.round(costSW+costPly),
+    },
+    items: comps.map(c => ({
+      code: c.id,
+      group: c.g,
+      name: c.name,
+      material: c.mat,
+      qty: c.qty,
+      P_cm: c.P, L_cm: c.L, T_cm: c.T,
+      vol_per_pcs_m3: +f(c.P*c.L*c.T/1e6,6),
+      vol_total_m3: +f(c.qty*c.P*c.L*c.T/1e6,6),
+      vol_log_m3: +f(c.qty*c.P*c.L*c.T/1e6*(1+state.waste/100)/(state.rendemen/100),6),
+    })),
+  };
+  document.getElementById('bom-preview').textContent = JSON.stringify(bomData, null, 2);
+
+  // ── Cost ──
+  document.getElementById('cost-result').innerHTML =
+    `<div style="background:var(--accent-bg);border-radius:var(--radius);padding:8px 12px;border:1px solid var(--accent2)">
+      <div style="font-size:10px;color:var(--text3);margin-bottom:4px">ESTIMASI TOTAL BIAYA MATERIAL</div>
+      <div style="font-size:18px;font-weight:700;color:var(--accent)">${fmoney(costSW+costPly)}</div>
+      <div style="font-size:10px;color:var(--text3);margin-top:2px">SW ${fmoney(costSW)} + PLY ${fmoney(costPly)}</div>
+    </div>`;
+
+  renderBOM(bomData);
+}
+
+function renderBOM(data) {
+  // stored for export
+  window._bomData = data;
+  window._compsData = data.items;
+}
+
+function switchTab(t) {
+  state.activeTab = t;
+  document.querySelectorAll('.tab-btn').forEach((b,i)=>{
+    b.classList.toggle('active', ['cutting','volume','bom'][i]===t);
+  });
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  document.getElementById('tab-'+t).classList.add('active');
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2200);
+}
+
+function copyBOM() {
+  const txt = document.getElementById('bom-preview').textContent;
+  navigator.clipboard.writeText(txt).then(()=>showToast('✅ BOM JSON tersalin ke clipboard!'));
+}
+
+function downloadBOM() {
+  const txt = document.getElementById('bom-preview').textContent;
+  const b = new Blob([txt],{type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(b);
+  a.download = `BOM_${state.ftype.toUpperCase()}_${Date.now().toString(36).toUpperCase()}.json`;
+  a.click();
+  showToast('⬇️ File JSON diunduh!');
+}
+
+function downloadExcelCSV() {
+  if (!window._bomData) return;
+  const d = window._bomData;
+  let csv = 'No,Kode,Grup,Nama Komponen,Material,Qty,P (cm),L (cm),T (cm),Vol/pcs (m³),Vol Total (m³),Vol Log (m³)\n';
+  d.items.forEach((c,i) => {
+    csv += [i+1,c.code,c.group,`"${c.name}"`,c.material,c.qty,c.P_cm,c.L_cm,c.T_cm,c.vol_per_pcs_m3,c.vol_total_m3,c.vol_log_m3].join(',')+'\n';
+  });
+  csv += '\n,,,,,,,,,,\n';
+  csv += `,,,,TOTAL VOLUME BERSIH,,,,,,${d.summary.vol_net_m3},\n`;
+  csv += `,,,,TOTAL VOL LOG (m³),,,,,,${d.summary.vol_log_required_m3},\n`;
+  csv += `,,,,BATANG SW DIBUTUHKAN,,,,,,,${d.summary.batang_needed}\n`;
+  csv += `,,,,PLYWOOD (lembar),,,,,,,${d.summary.plywood_sheets}\n`;
+  const b = new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(b);
+  a.download = `CuttingList_${state.ftype.toUpperCase()}_${Date.now().toString(36).toUpperCase()}.csv`;
+  a.click();
+  showToast('📄 CSV diunduh! Buka di Excel.');
+}
+
+// ══════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════
+
+function buildFurnitureTabs() {
+  const c = document.getElementById('ftabs');
+  c.innerHTML = '';
+  Object.entries(TEMPLATES).forEach(([key,t]) => {
+    const b = document.createElement('button');
+    b.className = 'ftab' + (state.ftype===key?' active':'');
+    b.innerHTML = `<span class="icon">${t.icon}</span>${t.label}`;
+    b.addEventListener('click', () => {
+      state.ftype = key; state.sidx = 0;
+      state.dims = {...(TEMPLATES[key].subtypes[0].d||{})};
+      buildFurnitureTabs(); buildConfigPanel(); render();
+    });
+    c.appendChild(b);
+  });
+}
+
+function buildConfigPanel() {
+  const tmpl = TEMPLATES[state.ftype];
+
+  // Subtype select
+  const sel = document.getElementById('subtype-sel');
+  sel.innerHTML = '';
+  tmpl.subtypes.forEach((s,i) => {
+    const o = document.createElement('option');
+    o.value = i; o.textContent = s.l; sel.appendChild(o);
+  });
+  sel.value = state.sidx;
+  sel.onchange = e => {
+    state.sidx = +e.target.value;
+    if (tmpl.subtypes[state.sidx].d) state.dims = {...tmpl.subtypes[state.sidx].d};
+    buildConfigPanel(); render();
+  };
+
+  // Dims
+  const dc = document.getElementById('dims-container');
+  dc.innerHTML = '';
+  const grid = document.createElement('div');
+  grid.className = 'dims-grid';
+  tmpl.dims.forEach(d => {
+    const grp = document.createElement('div');
+    grp.className = 'form-group';
+    const lbl = document.createElement('label');
+    lbl.textContent = d.l;
+    const inp = document.createElement('input');
+    inp.type = 'number'; inp.className = 'form-control';
+    inp.min = d.min; inp.max = d.max; inp.step = d.step;
+    inp.value = state.dims?.[d.k] ?? 0;
+    inp.addEventListener('input', e => { state.dims = {...state.dims, [d.k]: +e.target.value}; render(); });
+    grp.append(lbl, inp);
+    grid.appendChild(grp);
+  });
+  dc.appendChild(grid);
+}
+
+// Sync range ↔ number inputs
+function syncPair(rangeId, inputId, stateKey) {
+  const rng = document.getElementById(rangeId);
+  const inp = document.getElementById(inputId);
+  rng.addEventListener('input', e => { inp.value = e.target.value; state[stateKey] = +e.target.value; render(); });
+  inp.addEventListener('input', e => { rng.value = e.target.value; state[stateKey] = +e.target.value; render(); });
+}
+
+syncPair('rng-rendemen','inp-rendemen','rendemen');
+syncPair('rng-waste','inp-waste','waste');
+['inp-ba','inp-bb','inp-blen'].forEach((id,i) => {
+  document.getElementById(id).addEventListener('input', e => {
+    state[['ba','bb','blen'][i]] = +e.target.value; render();
+  });
+});
+['inp-swprice','inp-plyprice'].forEach((id,i) => {
+  document.getElementById(id).addEventListener('input', e => {
+    state[['swPrice','plyPrice'][i]] = +e.target.value; render();
+  });
+});
+
+buildFurnitureTabs();
+buildConfigPanel();
+render();
+</script>
+</body>
+</html>
